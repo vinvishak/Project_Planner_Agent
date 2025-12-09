@@ -1,0 +1,42 @@
+
+---
+
+### `CONTRIBUTING.md`
+
+```markdown
+# Contributing
+
+Thank you for your interest in improving Project Planner Agent.
+
+## Development setup
+
+1. Fork and clone the repository.
+2. Create a Python virtual environment and activate it.
+3. Install dependencies.
+4. Run the test suite before and after your changes.
+
+## Branching model
+
+- `main` holds stable, tested code.
+- Create feature branches from `main` using a descriptive name, for example:
+  - `feature/initial-plan-module`
+  - `feature/meeting-transcription`
+
+## Commit messages
+
+Use clear, present tense messages, for example:
+
+- `add basic plan data model`
+- `implement story to task decomposition`
+- `fix failing tests for planning module`
+
+## Testing
+
+- Add unit tests for new functions and modules.
+- Keep tests fast and focused on one behavior at a time.
+
+## Code style
+
+- Use a formatter such as `black` or `ruff format`.
+- Use a linter such as `ruff` or `flake8`.
+- Run these tools locally before pushing.
