@@ -1,0 +1,67 @@
+{
+  "id": "PLAN-1",
+  "name": "CDEX Score for Colleagues",
+  "vision_text": "I want to create a digital experience score for all colleagues to enable all of my colleagues to have the best experience with their digital devices.",
+  "time_horizon": "quarter",
+  "created_at": "2025-12-10 03:09:41.898856",
+  "epics": [
+    {
+      "id": "EPIC-1",
+      "title": "Initial Project Planning",
+      "description": "",
+      "priority": "high",
+      "status": "planned",
+      "stories": []
+    }
+  ],
+  "sprints": [
+    {
+      "id": "SPRINT-1",
+      "name": "Sprint 1",
+      "start_date": "2025-12-09",
+      "end_date": "2025-12-22",
+      "goal": "Foundations and scaffolding.",
+      "task_ids": []
+    },
+    {
+      "id": "SPRINT-2",
+      "name": "Sprint 2",
+      "start_date": "2025-12-23",
+      "end_date": "2026-01-05",
+      "goal": "Core planning and meeting capabilities.",
+      "task_ids": []
+    },
+    {
+      "id": "SPRINT-3",
+      "name": "Sprint 3",
+      "start_date": "2026-01-06",
+      "end_date": "2026-01-19",
+      "goal": "",
+      "task_ids": []
+    },
+    {
+      "id": "SPRINT-4",
+      "name": "Sprint 4",
+      "start_date": "2026-01-20",
+      "end_date": "2026-02-02",
+      "goal": "",
+      "task_ids": []
+    },
+    {
+      "id": "SPRINT-5",
+      "name": "Sprint 5",
+      "start_date": "2026-02-03",
+      "end_date": "2026-02-16",
+      "goal": "",
+      "task_ids": []
+    },
+    {
+      "id": "SPRINT-6",
+      "name": "Sprint 6",
+      "start_date": "2026-02-17",
+      "end_date": "2026-03-02",
+      "goal": "",
+      "task_ids": []
+    }
+  ]
+}
