@@ -1,66 +1,371 @@
 {
   "id": "PLAN-1",
-  "name": "CDEX Score for Colleagues",
-  "vision_text": "I want to create a digital experience score for all colleagues to enable all of my colleagues to have the best experience with their digital devices.",
+  "name": "Internal Dashboard",
+  "vision_text": "Create an internal dashboard for the company to use that monitors business critical metrics, produces alerts and gives everyone a view of the org health",
   "time_horizon": "quarter",
-  "created_at": "2025-12-10 03:09:41.898856",
+  "created_at": "2025-12-11 03:01:54.684554",
   "epics": [
     {
       "id": "EPIC-1",
-      "title": "Initial Project Planning",
+      "title": "Internal Dashboard Development",
       "description": "",
       "priority": "high",
       "status": "planned",
-      "stories": []
+      "stories": [
+        {
+          "id": "STORY-1",
+          "epic_id": "EPIC-1",
+          "title": "Develop a visually appealing and user-friendly interface for the internal dashboard.",
+          "description": "",
+          "acceptance_criteria": [],
+          "priority": "medium",
+          "status": "planned",
+          "tasks": [
+            {
+              "id": "TASK-1",
+              "story_id": "STORY-1",
+              "title": "Setup for: Develop a visually appealing and user-friendly interface for the internal dashboard.",
+              "description": "Create scaffolding, directories, configs, and basic wiring needed for this story.",
+              "estimate": "S",
+              "status": "planned",
+              "labels": [
+                "setup"
+              ]
+            },
+            {
+              "id": "TASK-2",
+              "story_id": "STORY-1",
+              "title": "Implement: Develop a visually appealing and user-friendly interface for the internal dashboard.",
+              "description": "Implement the main logic to satisfy this story.",
+              "estimate": "M",
+              "status": "planned",
+              "labels": [
+                "implementation"
+              ]
+            },
+            {
+              "id": "TASK-3",
+              "story_id": "STORY-1",
+              "title": "Validate: Develop a visually appealing and user-friendly interface for the internal dashboard.",
+              "description": "Test and verify that all acceptance criteria are met.",
+              "estimate": "S",
+              "status": "planned",
+              "labels": [
+                "testing"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "STORY-2",
+          "epic_id": "EPIC-1",
+          "title": "Integrate real-time data feeds from various systems to display key performance indicators (KPIs) and business critical metrics.",
+          "description": "",
+          "acceptance_criteria": [],
+          "priority": "medium",
+          "status": "planned",
+          "tasks": [
+            {
+              "id": "TASK-4",
+              "story_id": "STORY-2",
+              "title": "Setup for: Integrate real-time data feeds from various systems to display key performance indicators (KPIs) and business critical metrics.",
+              "description": "Create scaffolding, directories, configs, and basic wiring needed for this story.",
+              "estimate": "S",
+              "status": "planned",
+              "labels": [
+                "setup"
+              ]
+            },
+            {
+              "id": "TASK-5",
+              "story_id": "STORY-2",
+              "title": "Implement: Integrate real-time data feeds from various systems to display key performance indicators (KPIs) and business critical metrics.",
+              "description": "Implement the main logic to satisfy this story.",
+              "estimate": "M",
+              "status": "planned",
+              "labels": [
+                "implementation"
+              ]
+            },
+            {
+              "id": "TASK-6",
+              "story_id": "STORY-2",
+              "title": "Validate: Integrate real-time data feeds from various systems to display key performance indicators (KPIs) and business critical metrics.",
+              "description": "Test and verify that all acceptance criteria are met.",
+              "estimate": "S",
+              "status": "planned",
+              "labels": [
+                "testing"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "EPIC-2",
+      "title": "Alert System Implementation",
+      "description": "",
+      "priority": "high",
+      "status": "planned",
+      "stories": [
+        {
+          "id": "STORY-3",
+          "epic_id": "EPIC-2",
+          "title": "Design and implement an alert system that notifies team members of any deviations or anomalies in the KPIs, ensuring timely intervention.",
+          "description": "",
+          "acceptance_criteria": [],
+          "priority": "medium",
+          "status": "planned",
+          "tasks": [
+            {
+              "id": "TASK-7",
+              "story_id": "STORY-3",
+              "title": "Setup for: Design and implement an alert system that notifies team members of any deviations or anomalies in the KPIs, ensuring timely intervention.",
+              "description": "Create scaffolding, directories, configs, and basic wiring needed for this story.",
+              "estimate": "S",
+              "status": "planned",
+              "labels": [
+                "setup"
+              ]
+            },
+            {
+              "id": "TASK-8",
+              "story_id": "STORY-3",
+              "title": "Implement: Design and implement an alert system that notifies team members of any deviations or anomalies in the KPIs, ensuring timely intervention.",
+              "description": "Implement the main logic to satisfy this story.",
+              "estimate": "M",
+              "status": "planned",
+              "labels": [
+                "implementation"
+              ]
+            },
+            {
+              "id": "TASK-9",
+              "story_id": "STORY-3",
+              "title": "Validate: Design and implement an alert system that notifies team members of any deviations or anomalies in the KPIs, ensuring timely intervention.",
+              "description": "Test and verify that all acceptance criteria are met.",
+              "estimate": "S",
+              "status": "planned",
+              "labels": [
+                "testing"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "STORY-4",
+          "epic_id": "EPIC-2",
+          "title": "Develop a notification strategy that caters to different user preferences, including email, in-app notifications, and voice alerts.",
+          "description": "",
+          "acceptance_criteria": [],
+          "priority": "medium",
+          "status": "planned",
+          "tasks": [
+            {
+              "id": "TASK-10",
+              "story_id": "STORY-4",
+              "title": "Setup for: Develop a notification strategy that caters to different user preferences, including email, in-app notifications, and voice alerts.",
+              "description": "Create scaffolding, directories, configs, and basic wiring needed for this story.",
+              "estimate": "S",
+              "status": "planned",
+              "labels": [
+                "setup"
+              ]
+            },
+            {
+              "id": "TASK-11",
+              "story_id": "STORY-4",
+              "title": "Implement: Develop a notification strategy that caters to different user preferences, including email, in-app notifications, and voice alerts.",
+              "description": "Implement the main logic to satisfy this story.",
+              "estimate": "M",
+              "status": "planned",
+              "labels": [
+                "implementation"
+              ]
+            },
+            {
+              "id": "TASK-12",
+              "story_id": "STORY-4",
+              "title": "Validate: Develop a notification strategy that caters to different user preferences, including email, in-app notifications, and voice alerts.",
+              "description": "Test and verify that all acceptance criteria are met.",
+              "estimate": "S",
+              "status": "planned",
+              "labels": [
+                "testing"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "EPIC-3",
+      "title": "Org Health Monitoring and Visualization",
+      "description": "",
+      "priority": "high",
+      "status": "planned",
+      "stories": [
+        {
+          "id": "STORY-5",
+          "epic_id": "EPIC-3",
+          "title": "Create a comprehensive visualization of the organization's health, using data from various systems to provide insights into performance, risks, and opportunities.",
+          "description": "",
+          "acceptance_criteria": [],
+          "priority": "medium",
+          "status": "planned",
+          "tasks": [
+            {
+              "id": "TASK-13",
+              "story_id": "STORY-5",
+              "title": "Setup for: Create a comprehensive visualization of the organization's health, using data from various systems to provide insights into performance, risks, and opportunities.",
+              "description": "Create scaffolding, directories, configs, and basic wiring needed for this story.",
+              "estimate": "S",
+              "status": "planned",
+              "labels": [
+                "setup"
+              ]
+            },
+            {
+              "id": "TASK-14",
+              "story_id": "STORY-5",
+              "title": "Implement: Create a comprehensive visualization of the organization's health, using data from various systems to provide insights into performance, risks, and opportunities.",
+              "description": "Implement the main logic to satisfy this story.",
+              "estimate": "M",
+              "status": "planned",
+              "labels": [
+                "implementation"
+              ]
+            },
+            {
+              "id": "TASK-15",
+              "story_id": "STORY-5",
+              "title": "Validate: Create a comprehensive visualization of the organization's health, using data from various systems to provide insights into performance, risks, and opportunities.",
+              "description": "Test and verify that all acceptance criteria are met.",
+              "estimate": "S",
+              "status": "planned",
+              "labels": [
+                "testing"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "STORY-6",
+          "epic_id": "EPIC-3",
+          "title": "Implement a dashboard filtering mechanism that allows users to customize their view based on their specific needs and responsibilities.",
+          "description": "",
+          "acceptance_criteria": [],
+          "priority": "medium",
+          "status": "planned",
+          "tasks": [
+            {
+              "id": "TASK-16",
+              "story_id": "STORY-6",
+              "title": "Setup for: Implement a dashboard filtering mechanism that allows users to customize their view based on their specific needs and responsibilities.",
+              "description": "Create scaffolding, directories, configs, and basic wiring needed for this story.",
+              "estimate": "S",
+              "status": "planned",
+              "labels": [
+                "setup"
+              ]
+            },
+            {
+              "id": "TASK-17",
+              "story_id": "STORY-6",
+              "title": "Implement: Implement a dashboard filtering mechanism that allows users to customize their view based on their specific needs and responsibilities.",
+              "description": "Implement the main logic to satisfy this story.",
+              "estimate": "M",
+              "status": "planned",
+              "labels": [
+                "implementation"
+              ]
+            },
+            {
+              "id": "TASK-18",
+              "story_id": "STORY-6",
+              "title": "Validate: Implement a dashboard filtering mechanism that allows users to customize their view based on their specific needs and responsibilities.",
+              "description": "Test and verify that all acceptance criteria are met.",
+              "estimate": "S",
+              "status": "planned",
+              "labels": [
+                "testing"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "sprints": [
     {
       "id": "SPRINT-1",
       "name": "Sprint 1",
-      "start_date": "2025-12-09",
-      "end_date": "2025-12-22",
-      "goal": "Foundations and scaffolding.",
-      "task_ids": []
+      "start_date": "2025-12-10",
+      "end_date": "2025-12-23",
+      "goal": "Foundations for 'Create an internal dashboard for the company to use that monitors business cr...'. Focus on Internal Dashboard Development.",
+      "task_ids": [
+        "TASK-1",
+        "TASK-2",
+        "TASK-3",
+        "TASK-4",
+        "TASK-5"
+      ]
     },
     {
       "id": "SPRINT-2",
       "name": "Sprint 2",
-      "start_date": "2025-12-23",
-      "end_date": "2026-01-05",
-      "goal": "Core planning and meeting capabilities.",
-      "task_ids": []
+      "start_date": "2025-12-24",
+      "end_date": "2026-01-06",
+      "goal": "Core implementation for Internal Dashboard Development, Alert System Implementation.",
+      "task_ids": [
+        "TASK-6",
+        "TASK-7",
+        "TASK-8",
+        "TASK-9",
+        "TASK-10"
+      ]
     },
     {
       "id": "SPRINT-3",
       "name": "Sprint 3",
-      "start_date": "2026-01-06",
-      "end_date": "2026-01-19",
-      "goal": "",
-      "task_ids": []
+      "start_date": "2026-01-07",
+      "end_date": "2026-01-20",
+      "goal": "Refinement and validation for Alert System Implementation, Org Health Monitoring and Visualization.",
+      "task_ids": [
+        "TASK-11",
+        "TASK-12",
+        "TASK-13",
+        "TASK-14",
+        "TASK-15"
+      ]
     },
     {
       "id": "SPRINT-4",
       "name": "Sprint 4",
-      "start_date": "2026-01-20",
-      "end_date": "2026-02-02",
-      "goal": "",
-      "task_ids": []
+      "start_date": "2026-01-21",
+      "end_date": "2026-02-03",
+      "goal": "Ongoing improvements across Org Health Monitoring and Visualization.",
+      "task_ids": [
+        "TASK-16",
+        "TASK-17",
+        "TASK-18"
+      ]
     },
     {
       "id": "SPRINT-5",
       "name": "Sprint 5",
-      "start_date": "2026-02-03",
-      "end_date": "2026-02-16",
-      "goal": "",
+      "start_date": "2026-02-04",
+      "end_date": "2026-02-17",
+      "goal": "Ongoing improvements across key epics.",
       "task_ids": []
     },
     {
       "id": "SPRINT-6",
       "name": "Sprint 6",
-      "start_date": "2026-02-17",
-      "end_date": "2026-03-02",
-      "goal": "",
+      "start_date": "2026-02-18",
+      "end_date": "2026-03-03",
+      "goal": "Ongoing improvements across key epics.",
       "task_ids": []
     }
   ]

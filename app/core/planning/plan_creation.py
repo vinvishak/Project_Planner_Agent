@@ -11,6 +11,7 @@ from typing import List, Tuple
 
 import openai
 import requests
+import textwrap
 from app.core.planning.models import (
     Plan,
     Epic,
@@ -25,6 +26,37 @@ from app.core.planning.models import (
 # Read API key from environment: export OPENAI_API_KEY="sk-..."
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
+def _normalize_outline_format(outline: str) -> str:
+    """
+    Fix indentation and structure so parser can understand the output.
+    Ensures:
+      EPIC:
+        STORY:
+        STORY:
+    And adds blank lines between EPIC blocks.
+    """
+    lines = outline.split("\n")
+    normalized = []
+
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("EPIC:"):
+            if normalized:  # add space between EPIC blocks
+                normalized.append("")
+            normalized.append(stripped)
+
+        elif stripped.startswith("STORY:"):
+            # parser expects stories indented under epics
+            normalized.append("  " + stripped)
+
+        elif stripped == "":
+            continue  # skip excess empty lines
+
+        else:
+            # If some extra text appears, just keep it normal
+            normalized.append(stripped)
+
+    return "\n".join(normalized)
 
 def _generate_id(prefix: str, counter: int) -> str:
     """Simple helper to generate ids like EPIC-1, STORY-3, TASK-10, etc."""
@@ -38,88 +70,95 @@ def _generate_id(prefix: str, counter: int) -> str:
 
 def _ask_llm_for_outline(vision_text: str) -> str:
     """
-    Call the LLM to propose epics and stories in a consistent outline format.
-    The LLM returns plain text; we handle structuring in Python.
+    Call the local Ollama LLaMA model and return a clean outline string.
     """
 
-    if not openai.api_key:
-        raise RuntimeError("OPENAI_API_KEY is not set in the environment.")
+    prompt = textwrap.dedent(f"""
+    You are a planning assistant. Given a product vision, output an outline of epics and user stories.
 
-    system_prompt = (
-        "You are a senior product manager. "
-        "Given a product vision, you design a clear project structure with epics "
-        "and user stories in a consistent outline format."
+    Format your response exactly like this, with no extra sections:
+
+    EPIC: <epic title>
+      STORY: <story title>
+      STORY: <story title>
+
+    EPIC: <another epic>
+      STORY: <story title>
+
+    Vision:
+    {vision_text}
+    """)
+
+    # Call Ollama /api/generate, non streaming
+    resp = requests.post(
+        "http://localhost:11434/api/generate",
+        json={
+            "model": "llama3.2:latest",   # or "llama3:latest" if you prefer
+            "prompt": prompt,
+            "stream": False,
+        },
+        timeout=180,
     )
+    resp.raise_for_status()
+    data = resp.json()
 
-    user_prompt = f"""
-VISION:
-\"\"\"{vision_text}\"\"\"
+    # Ollama returns the text in the 'response' field
+    raw_text = data.get("response", "")
 
-Return an outline in EXACTLY this style:
+    print("\n================ RAW LLaMA OUTLINE ================\n")
+    print(raw_text)
+    print("\n===================================================\n")
 
-Epics:
-1. <Epic title>
-   - <One-line epic description>
-   Stories:
-   - Story: <Story title>
-     Description: <one or two sentences>
-     Acceptance criteria:
-       - <criterion 1>
-       - <criterion 2>
-       - <criterion 3>
+    # Normalize line endings
+    normalized = raw_text.replace("\r\n", "\n")
 
-2. <Next epic title>
-   - <One-line epic description>
-   Stories:
-   - Story: <Story title>
-     Description: <one or two sentences>
-     Acceptance criteria:
-       - <criterion 1>
-       - <criterion 2>
+    # Clean common leading junk
+    lines = []
+    for line in normalized.split("\n"):
+        stripped = line.strip()
+        # Remove leading bullets like "-", "*", "•"
+        stripped = stripped.lstrip("-*•").strip()
+        # Remove leading numbers like "1." or "2)"
+        stripped = re.sub(r"^[0-9]+[.)]\s*", "", stripped)
+        lines.append(stripped)
 
-Rules:
-- Include 3–7 epics.
-- Each epic must have at least 1 story.
-- Each story must have at least 2 acceptance criteria.
-- Use exactly these headings: 'Epics:', 'Stories:', 'Story:', 'Description:', 'Acceptance criteria:'.
-- Use '-' bullet points for acceptance criteria.
-- Do NOT use JSON.
-- Do NOT add explanations before or after the outline.
-"""
+    cleaned_outline = "\n".join(lines)
 
-    response = openai.ChatCompletion.create(
-        model="gpt-4o-mini",  # adjust model if needed
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        temperature=0.4,
-    )
+    print("\n================ CLEANED OUTLINE ==================\n")
+    print(cleaned_outline)
+    print("\n===================================================\n")
 
-    outline_text = response.choices[0].message["content"].strip()
-    return outline_text
+    outline = _normalize_outline_format(cleaned_outline)
+
+    print("\n================ NORMALIZED OUTLINE FOR PARSER ==================\n")
+    print(outline)
+    print("\n=================================================================\n")
+
+    return outline
 
 
 # -------------------------------------------------------------------
 # PARSER: outline text -> Epic / Story / Task models
 # -------------------------------------------------------------------
 
-
 def _parse_outline_to_models(outline: str) -> Tuple[List[Epic], List[Task]]:
     """
     Parse the LLM outline text into Epic, Story, Task objects.
 
-    Expected structure (simplified):
+    Supports two formats:
 
-    Epics:
-    1. Epic title
-       - Epic description
-       Stories:
-       - Story: Story title
-         Description: ...
-         Acceptance criteria:
-           - ...
-           - ...
+    1) Old format (numbered + bullet):
+       1. Epic title
+          - Epic description
+          - Story: Story title
+            Description: ...
+            Acceptance criteria:
+              - ...
+
+    2) New LLaMA format (EPIC/STORY):
+       EPIC: Epic title
+         STORY: Story title (can be full user story)
+         STORY: Another story
     """
 
     epics: List[Epic] = []
@@ -140,10 +179,80 @@ def _parse_outline_to_models(outline: str) -> Tuple[List[Epic], List[Task]]:
     lines = outline.splitlines()
     for raw_line in lines:
         line = raw_line.rstrip()
-
         stripped = line.strip()
 
-        # Detect "1. Epic title" style lines
+        # ------------------------------------------------------
+        # NEW FORMAT: "EPIC: <title>"
+        # ------------------------------------------------------
+        if stripped.startswith("EPIC:"):
+            # Close any open story
+            if current_story is not None:
+                current_story.acceptance_criteria = temp_criteria
+                temp_criteria = []
+                if current_epic is not None:
+                    current_epic.stories.append(current_story)
+                current_story = None
+                collecting_criteria = False
+
+            # Close previous epic
+            if current_epic is not None:
+                epics.append(current_epic)
+
+            epic_id = _generate_id("EPIC", next(epic_counter))
+            epic_title = stripped[len("EPIC:"):].strip()
+            current_epic = Epic(
+                id=epic_id,
+                title=epic_title,
+                description="",
+                priority=Priority.HIGH,
+                status=Status.PLANNED,
+                stories=[],
+            )
+            last_line_was_epic_title = True
+            continue
+
+        # ------------------------------------------------------
+        # NEW FORMAT: "STORY: <full user story>"
+        # ------------------------------------------------------
+        if stripped.startswith("STORY:"):
+            # Close previous story
+            if current_story is not None:
+                current_story.acceptance_criteria = temp_criteria
+                temp_criteria = []
+                if current_epic is not None:
+                    current_epic.stories.append(current_story)
+
+            # If there is no current epic yet, create a generic one
+            if current_epic is None:
+                epic_id = _generate_id("EPIC", next(epic_counter))
+                current_epic = Epic(
+                    id=epic_id,
+                    title="General",
+                    description="Auto-created epic for orphan stories.",
+                    priority=Priority.MEDIUM,
+                    status=Status.PLANNED,
+                    stories=[],
+                )
+
+            story_id = _generate_id("STORY", next(story_counter))
+            story_title = stripped[len("STORY:"):].strip()
+            current_story = Story(
+                id=story_id,
+                epic_id=current_epic.id,
+                title=story_title,
+                description="",
+                acceptance_criteria=[],
+                priority=Priority.MEDIUM,
+                status=Status.PLANNED,
+                tasks=[],
+            )
+            collecting_criteria = False
+            last_line_was_epic_title = False
+            continue
+
+        # ------------------------------------------------------
+        # OLD FORMAT: "1. Epic title"
+        # ------------------------------------------------------
         if re.match(r"^\d+\.\s+", stripped):
             # Close any open story
             if current_story is not None:
@@ -171,13 +280,13 @@ def _parse_outline_to_models(outline: str) -> Tuple[List[Epic], List[Task]]:
             last_line_was_epic_title = True
             continue
 
-        # Epic one-line description (we treat the first bullet after the epic title as description)
+        # Epic one-line description (old format)
         if stripped.startswith("- ") and current_epic is not None and last_line_was_epic_title:
             current_epic.description = stripped.lstrip("- ").strip()
             last_line_was_epic_title = False
             continue
 
-        # Detect story header: "- Story: Story title"
+        # OLD FORMAT: "- Story: Story title"
         if stripped.startswith("- Story:"):
             # Close previous story
             if current_story is not None:
@@ -185,7 +294,7 @@ def _parse_outline_to_models(outline: str) -> Tuple[List[Epic], List[Task]]:
                 temp_criteria = []
                 if current_epic is not None:
                     current_epic.stories.append(current_story)
-            # New story
+
             story_id = _generate_id("STORY", next(story_counter))
             story_title = stripped.replace("- Story:", "").strip()
             current_story = Story(
@@ -221,7 +330,9 @@ def _parse_outline_to_models(outline: str) -> Tuple[List[Epic], List[Task]]:
 
         # Otherwise ignore the line (blank or headings like "Epics:", "Stories:")
 
+    # ------------------------------------------------------
     # Close any open story and epic at the end
+    # ------------------------------------------------------
     if current_story is not None:
         current_story.acceptance_criteria = temp_criteria
         if current_epic is not None:
@@ -230,7 +341,9 @@ def _parse_outline_to_models(outline: str) -> Tuple[List[Epic], List[Task]]:
     if current_epic is not None:
         epics.append(current_epic)
 
+    # ------------------------------------------------------
     # Auto-generate tasks for each story
+    # ------------------------------------------------------
     for epic in epics:
         for story in epic.stories:
             t1 = Task(
@@ -263,7 +376,9 @@ def _parse_outline_to_models(outline: str) -> Tuple[List[Epic], List[Task]]:
             story.tasks = [t1, t2, t3]
             all_tasks.extend(story.tasks)
 
-    # If something went wrong and we have no epics, create a minimal fallback
+    # ------------------------------------------------------
+    # Fallback if absolutely nothing parsed
+    # ------------------------------------------------------
     if not epics:
         fallback_epic = Epic(
             id=_generate_id("EPIC", next(epic_counter)),
@@ -299,7 +414,6 @@ def _parse_outline_to_models(outline: str) -> Tuple[List[Epic], List[Task]]:
 
     return epics, all_tasks
 
-
 # -------------------------------------------------------------------
 # SPRINT ALLOCATION (same idea as before)
 # -------------------------------------------------------------------
@@ -317,7 +431,12 @@ def _estimate_number_of_sprints(time_horizon: TimeHorizon) -> int:
     return 4            # default fallback
 
 
-def _allocate_sprints(tasks: List[Task], time_horizon: TimeHorizon) -> List[Sprint]:
+def _allocate_sprints(
+    epics: List[Epic],
+    tasks: List[Task],
+    time_horizon: TimeHorizon,
+    vision_text: str,
+) -> List[Sprint]:
     total_sprints = _estimate_number_of_sprints(time_horizon)
     if total_sprints == 0:
         return []
@@ -326,7 +445,7 @@ def _allocate_sprints(tasks: List[Task], time_horizon: TimeHorizon) -> List[Spri
     today = dt.date.today()
     sprint_length_days = 14
 
-    # Create time-boxed sprints
+    # Create time boxed sprints
     for i in range(total_sprints):
         start = today + dt.timedelta(days=i * sprint_length_days)
         end = start + dt.timedelta(days=sprint_length_days - 1)
@@ -341,7 +460,18 @@ def _allocate_sprints(tasks: List[Task], time_horizon: TimeHorizon) -> List[Spri
             )
         )
 
-    # Assign tasks into sprints sequentially
+    if not tasks:
+        # No tasks, just set very high level goals
+        for i, sprint in enumerate(sprints):
+            if i == 0:
+                sprint.goal = "Initial setup and discovery."
+            elif i == 1:
+                sprint.goal = "Core implementation."
+            else:
+                sprint.goal = "Ongoing improvements."
+        return sprints
+
+    # Simple sequential assignment of tasks into sprints
     sprint_index = 0
     for task in tasks:
         sprints[sprint_index].task_ids.append(task.id)
@@ -349,11 +479,57 @@ def _allocate_sprints(tasks: List[Task], time_horizon: TimeHorizon) -> List[Spri
         if len(sprints[sprint_index].task_ids) >= 5 and sprint_index < total_sprints - 1:
             sprint_index += 1
 
-    # Simple goals for first couple of sprints
-    if sprints:
-        sprints[0].goal = "Foundations and scaffolding."
-    if len(sprints) > 1:
-        sprints[1].goal = "Core planning and meeting capabilities."
+    # Build lookup maps to understand which epic each task belongs to
+    story_by_id = {}
+    epic_by_id = {}
+
+    for epic in epics:
+        epic_by_id[epic.id] = epic
+        for story in epic.stories:
+            story_by_id[story.id] = story
+
+    # Helper to get a short project label from the vision text
+    first_line = vision_text.strip().splitlines()[0] if vision_text.strip() else "this project"
+    if len(first_line) > 80:
+        first_line = first_line[:77] + "..."
+
+    # Set a specific goal for each sprint based on its tasks and epics
+    for i, sprint in enumerate(sprints):
+        epic_titles_in_sprint = []
+
+        for task in tasks:
+            if task.id in sprint.task_ids:
+                story = story_by_id.get(task.story_id)
+                if story:
+                    epic = epic_by_id.get(story.epic_id)
+                    if epic:
+                        epic_titles_in_sprint.append(epic.title)
+
+        # Unique epic titles, preserve order
+        seen = set()
+        unique_epic_titles = []
+        for title in epic_titles_in_sprint:
+            if title not in seen:
+                unique_epic_titles.append(title)
+                seen.add(title)
+
+        if unique_epic_titles:
+            # Only show at most three epic names
+            if len(unique_epic_titles) > 3:
+                epic_list_str = ", ".join(unique_epic_titles[:3]) + ", and others"
+            else:
+                epic_list_str = ", ".join(unique_epic_titles)
+        else:
+            epic_list_str = "key epics"
+
+        if i == 0:
+            sprint.goal = f"Foundations for '{first_line}'. Focus on {epic_list_str}."
+        elif i == 1:
+            sprint.goal = f"Core implementation for {epic_list_str}."
+        elif i == 2:
+            sprint.goal = f"Refinement and validation for {epic_list_str}."
+        else:
+            sprint.goal = f"Ongoing improvements across {epic_list_str}."
 
     return sprints
 
@@ -382,6 +558,7 @@ def create_plan_from_vision(
     try:
         print("Calling LLM to design plan structure...")
         outline = _ask_llm_for_outline(vision_text)
+        print("Outline text returned from LLaMA:\n", outline)
         epics, all_tasks = _parse_outline_to_models(outline)
         print(f"LLM outline parsed into {len(epics)} epics and {len(all_tasks)} tasks.")
     except Exception as e:
@@ -390,7 +567,7 @@ def create_plan_from_vision(
         print("Falling back to a minimal single-epic plan.")
         epics, all_tasks = _parse_outline_to_models("Epics:\n1. Initial Project Planning")
 
-    sprints = _allocate_sprints(all_tasks, time_horizon)
+    sprints = _allocate_sprints(epics, all_tasks, time_horizon, vision_text)
 
     plan = Plan(
         id=plan_id,
